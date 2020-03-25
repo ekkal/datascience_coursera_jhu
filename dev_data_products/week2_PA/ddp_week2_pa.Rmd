@@ -18,15 +18,14 @@ A map describing earth quakes info across the world between years 2000 and 2020 
 
 The earth quake data is obtained from https://earthquake.usgs.gov website and is downloaded ahead into the project directory.
 
-```{r, echo=FALSE, results='hide', error=FALSE, warning=FALSE, message=FALSE}
+## Code
+
+```{r, context="render"}
+# client - UI design
 library(shiny)
 library(shinyWidgets)
 library(leaflet)
-library(tidyverse)
-library(lubridate)
-library(RColorBrewer)
 
-# UI design
 ui <- fluidPage(
 
     titlePanel("Earth Quakes"),
@@ -51,8 +50,15 @@ ui <- fluidPage(
         )
     )
 )
+```
 
-# server logic
+```{r, context="server"}
+# server - logic
+library(leaflet)
+library(tidyverse)
+library(lubridate)
+library(RColorBrewer)
+
 server <- function(input, output, session) {
 
     # full data and color palette.
@@ -77,8 +83,8 @@ server <- function(input, output, session) {
                 fillOpacity = 0.5,
                 radius = ~ exp(sqrt(mag))*mag*1000, 
                 weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
+                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
             )
     })
 
@@ -94,15 +100,15 @@ server <- function(input, output, session) {
                 fillOpacity = 0.5, 
                 radius = ~ exp(sqrt(mag))*mag*1000, 
                 weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
+                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
         )
     })
 }
 ```
 
-## Executing the program
+## Output
 
-```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+```{r}
 shinyApp(ui, server)
 ```

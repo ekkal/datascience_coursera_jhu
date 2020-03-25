@@ -203,6 +203,96 @@ window.buildTabsets = function(tocID) {
 </script>
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #2a211c;
+    color: #bdae9d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #bdae9d;  padding-left: 4px; }
+div.sourceCode
+  { color: #bdae9d; background-color: #2a211c; }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ffff00; } /* Alert */
+code span.an { color: #0066ff; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bn { color: #44aa43; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #43a8ed; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #049b0a; } /* Char */
+code span.cn { } /* Constant */
+code span.co { color: #0066ff; font-weight: bold; font-style: italic; } /* Comment */
+code span.do { color: #0066ff; font-style: italic; } /* Documentation */
+code span.dt { text-decoration: underline; } /* DataType */
+code span.dv { color: #44aa43; } /* DecVal */
+code span.er { color: #ffff00; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #44aa43; } /* Float */
+code span.fu { color: #ff9358; font-weight: bold; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #0066ff; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #43a8ed; font-weight: bold; } /* Keyword */
+code span.op { } /* Operator */
+code span.pp { font-weight: bold; } /* Preprocessor */
+code span.sc { color: #049b0a; } /* SpecialChar */
+code span.ss { color: #049b0a; } /* SpecialString */
+code span.st { color: #049b0a; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #049b0a; } /* VerbatimString */
+code span.wa { color: #ffff00; font-weight: bold; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
 
 
 <style type="text/css">
@@ -353,8 +443,106 @@ summary {
 <p>A map describing earth quakes info across the world between years 2000 and 2020 is created using Shiny and Leaflet. The map provides a hover feature that would display the magnitude, year and also place of the earth quake when mouse is on top of the earth quake circle. When clicked on the circle a standing out label with the info is diplayed. The years and the magnitude of the earth quakes can be selected using a slider range scale.</p>
 <p>The earth quake data is obtained from <a href="https://earthquake.usgs.gov" class="uri">https://earthquake.usgs.gov</a> website and is downloaded ahead into the project directory.</p>
 </div>
-<div id="executing-the-program" class="section level2">
-<h2>Executing the program</h2>
+<div id="code" class="section level2">
+<h2>Code</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co"># client - UI design</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(shiny)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(shinyWidgets)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">library</span>(leaflet)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">ui &lt;-<span class="st"> </span><span class="kw">fluidPage</span>(</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">    <span class="kw">titlePanel</span>(<span class="st">&quot;Earth Quakes&quot;</span>),</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">    <span class="kw">h4</span>(<span class="st">&quot;Date Created: 03/24/2020&quot;</span>),</a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11">    <span class="kw">sidebarLayout</span>(</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">        <span class="kw">sidebarPanel</span>(</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13">            <span class="co"># slider for year range.</span></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">            <span class="kw">sliderInput</span>(<span class="st">&quot;year_range&quot;</span>, <span class="st">&quot;Year Range:&quot;</span>,</a>
+<a class="sourceLine" id="cb1-15" data-line-number="15">                        <span class="dt">min =</span> <span class="dv">2000</span>, <span class="dt">max =</span> <span class="dv">2020</span>,</a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">                        <span class="dt">value =</span> <span class="kw">c</span>(<span class="dv">2010</span>,<span class="dv">2020</span>), <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>),</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb1-18" data-line-number="18">            <span class="co"># slider for magnitude range.</span></a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">            <span class="kw">sliderInput</span>(<span class="st">&quot;mag_range&quot;</span>, <span class="st">&quot;Magnitude Range:&quot;</span>,</a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">                        <span class="dt">min =</span> <span class="dv">5</span>, <span class="dt">max =</span> <span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">                        <span class="dt">value =</span> <span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">10</span>), <span class="dt">step =</span> <span class="fl">0.5</span>),</a>
+<a class="sourceLine" id="cb1-22" data-line-number="22">        ),</a>
+<a class="sourceLine" id="cb1-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb1-24" data-line-number="24">        <span class="kw">mainPanel</span>(</a>
+<a class="sourceLine" id="cb1-25" data-line-number="25">            <span class="co"># display map with default width and height.</span></a>
+<a class="sourceLine" id="cb1-26" data-line-number="26">            <span class="kw">leafletOutput</span>(<span class="st">&quot;map&quot;</span>)</a>
+<a class="sourceLine" id="cb1-27" data-line-number="27">        )</a>
+<a class="sourceLine" id="cb1-28" data-line-number="28">    )</a>
+<a class="sourceLine" id="cb1-29" data-line-number="29">)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># server - logic</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">library</span>(leaflet)</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">library</span>(tidyverse)</a></code></pre></div>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.3.0     ✔ purrr   0.3.3
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.5
+## ✔ tidyr   1.0.2     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.5.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">library</span>(lubridate)</a></code></pre></div>
+<pre><code>## 
+## Attaching package: 'lubridate'</code></pre>
+<pre><code>## The following object is masked from 'package:base':
+## 
+##     date</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">library</span>(RColorBrewer)</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">server &lt;-<span class="st"> </span><span class="cf">function</span>(input, output, session) {</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">    <span class="co"># full data and color palette.</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">    data &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;world_earthquakes.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">    colorpal &lt;-<span class="st"> </span><span class="kw">colorNumeric</span>(<span class="st">&quot;YlOrRd&quot;</span>, data<span class="op">$</span>mag)</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">    <span class="co"># reactive data.</span></a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">    filteredData &lt;-<span class="st"> </span><span class="kw">reactive</span>({</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">        data &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;world_earthquakes.csv&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="kw">year</span>(time) <span class="op">&gt;=</span><span class="st"> </span>input<span class="op">$</span>year_range[<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span><span class="kw">year</span>(time) <span class="op">&lt;=</span><span class="st"> </span>input<span class="op">$</span>year_range[<span class="dv">2</span>] <span class="op">&amp;</span><span class="st"> </span>mag <span class="op">&gt;=</span><span class="st"> </span>input<span class="op">$</span>mag_range[<span class="dv">1</span>] <span class="op">&amp;</span><span class="st"> </span>mag <span class="op">&lt;=</span><span class="st"> </span>input<span class="op">$</span>mag_range[<span class="dv">2</span>])</a>
+<a class="sourceLine" id="cb9-12" data-line-number="12">    })</a>
+<a class="sourceLine" id="cb9-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb9-14" data-line-number="14">    <span class="co"># draw and center view to north america</span></a>
+<a class="sourceLine" id="cb9-15" data-line-number="15">    output<span class="op">$</span>map &lt;-<span class="st"> </span><span class="kw">renderLeaflet</span>({</a>
+<a class="sourceLine" id="cb9-16" data-line-number="16">        <span class="kw">leaflet</span>(data) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-17" data-line-number="17"><span class="st">            </span><span class="kw">setView</span>(<span class="dt">lng =</span> <span class="dv">-99</span>, <span class="dt">lat =</span> <span class="dv">42</span>, <span class="dt">zoom =</span> <span class="dv">3</span>)  <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-18" data-line-number="18"><span class="st">            </span><span class="kw">addTiles</span>() <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-19" data-line-number="19"><span class="st">            </span><span class="kw">addCircles</span>(</a>
+<a class="sourceLine" id="cb9-20" data-line-number="20">                <span class="dt">lat =</span> <span class="op">~</span><span class="st"> </span>latitude, </a>
+<a class="sourceLine" id="cb9-21" data-line-number="21">                <span class="dt">lng =</span> <span class="op">~</span><span class="st"> </span>longitude, </a>
+<a class="sourceLine" id="cb9-22" data-line-number="22">                <span class="dt">color =</span> <span class="st">&quot;#777777&quot;</span>,</a>
+<a class="sourceLine" id="cb9-23" data-line-number="23">                <span class="dt">fillColor =</span> <span class="op">~</span><span class="kw">colorpal</span>(mag), </a>
+<a class="sourceLine" id="cb9-24" data-line-number="24">                <span class="dt">fillOpacity =</span> <span class="fl">0.5</span>,</a>
+<a class="sourceLine" id="cb9-25" data-line-number="25">                <span class="dt">radius =</span> <span class="op">~</span><span class="st"> </span><span class="kw">exp</span>(<span class="kw">sqrt</span>(mag))<span class="op">*</span>mag<span class="op">*</span><span class="dv">1000</span>, </a>
+<a class="sourceLine" id="cb9-26" data-line-number="26">                <span class="dt">weight =</span> <span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb9-27" data-line-number="27">                <span class="dt">popup =</span> <span class="op">~</span><span class="kw">as.character</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Magnitude: %s&lt;br&gt;Year: %s&lt;br&gt;Place: %s&quot;</span>, mag, <span class="kw">year</span>(time), place)), </a>
+<a class="sourceLine" id="cb9-28" data-line-number="28">                <span class="dt">label =</span> <span class="op">~</span><span class="kw">as.character</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Magnitude: %s, Year: %s, Place: %s&quot;</span>, mag, <span class="kw">year</span>(time), place))</a>
+<a class="sourceLine" id="cb9-29" data-line-number="29">            )</a>
+<a class="sourceLine" id="cb9-30" data-line-number="30">    })</a>
+<a class="sourceLine" id="cb9-31" data-line-number="31"></a>
+<a class="sourceLine" id="cb9-32" data-line-number="32">    <span class="co"># redraw based on controllers.</span></a>
+<a class="sourceLine" id="cb9-33" data-line-number="33">    <span class="kw">observe</span>({</a>
+<a class="sourceLine" id="cb9-34" data-line-number="34">        <span class="kw">leafletProxy</span>(<span class="st">&quot;map&quot;</span>, <span class="dt">data =</span> <span class="kw">filteredData</span>()) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-35" data-line-number="35"><span class="st">            </span><span class="kw">clearShapes</span>() <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-36" data-line-number="36"><span class="st">            </span><span class="kw">addCircles</span>(</a>
+<a class="sourceLine" id="cb9-37" data-line-number="37">                <span class="dt">lat =</span> <span class="op">~</span><span class="st"> </span>latitude, </a>
+<a class="sourceLine" id="cb9-38" data-line-number="38">                <span class="dt">lng =</span> <span class="op">~</span><span class="st"> </span>longitude, </a>
+<a class="sourceLine" id="cb9-39" data-line-number="39">                <span class="dt">color =</span> <span class="st">&quot;#777777&quot;</span>,</a>
+<a class="sourceLine" id="cb9-40" data-line-number="40">                <span class="dt">fillColor =</span> <span class="op">~</span><span class="kw">colorpal</span>(mag), </a>
+<a class="sourceLine" id="cb9-41" data-line-number="41">                <span class="dt">fillOpacity =</span> <span class="fl">0.5</span>, </a>
+<a class="sourceLine" id="cb9-42" data-line-number="42">                <span class="dt">radius =</span> <span class="op">~</span><span class="st"> </span><span class="kw">exp</span>(<span class="kw">sqrt</span>(mag))<span class="op">*</span>mag<span class="op">*</span><span class="dv">1000</span>, </a>
+<a class="sourceLine" id="cb9-43" data-line-number="43">                <span class="dt">weight =</span> <span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb9-44" data-line-number="44">                <span class="dt">popup =</span> <span class="op">~</span><span class="kw">as.character</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Magnitude: %s&lt;br&gt;Year: %s&lt;br&gt;Place: %s&quot;</span>, mag, <span class="kw">year</span>(time), place)), </a>
+<a class="sourceLine" id="cb9-45" data-line-number="45">                <span class="dt">label =</span> <span class="op">~</span><span class="kw">as.character</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Magnitude: %s, Year: %s, Place: %s&quot;</span>, mag, <span class="kw">year</span>(time), place))</a>
+<a class="sourceLine" id="cb9-46" data-line-number="46">        )</a>
+<a class="sourceLine" id="cb9-47" data-line-number="47">    })</a>
+<a class="sourceLine" id="cb9-48" data-line-number="48">}</a></code></pre></div>
+</div>
+<div id="output" class="section level2">
+<h2>Output</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw">shinyApp</span>(ui, server)</a></code></pre></div>
 <div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>
 </div>
 
