@@ -1,0 +1,140 @@
+---
+title: "Regression Models - Motor Trend"
+author: "Rajesh Ekkaladevi"
+date: "Mar 09, 2020"
+output:
+  pdf_document:
+    highlight: tango
+---
+
+## Executive Summary
+
+The goal of the exercise is to review **mtcars** dataset and answer the following questions:
+
+1.  Is an automatic or manual transmission better for MPG.
+2.  Quantify the MPG difference between automatic and manual transmissions.
+
+First, we will take a look at the input data and perform exploratory data analysis to understand the data better.  Later we will fit linear regression models on the features and perform regression diagnostics.  Finally come up with the best fit model along with assumptions made.
+
+## Data Processing
+
+```{r, echo=FALSE, results='hide', error=FALSE, warning=FALSE, message=FALSE}
+library(UsingR)
+library(tidyverse)
+library(skimr)
+library(corrplot)
+library(GGally)
+library(stats)
+library(knitr)
+```
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+mtcars <- mtcars %>% mutate(cyl=factor(cyl), vs=factor(vs), am=factor(if_else(am == 1, 'manual', 'auto')), gear=factor(gear), carb=factor(carb))
+```
+
+The **mtcars** dataset has 32 observation and 11 variables.  None of the variables are missing data (having Null, NA or empty).  Some of the variables are indeed factors so, the dataframe is converting into factors overwriting the original dataset.  Refer to Appendix Section 1 for more details.
+
+## Exploratory Data Analysis
+The exploratory data analysis with pair plot (refer to Appendix Section 2) shows how mpg is corrGelated with the other variables.  Noteable observations are:  
+1. **am** with manual has more mpg compared to auto.  
+2. **cyl** with lower values (4, 6) have higher mpg compared to higher values (8) and the difference between manual vs auto transmission is higher at lower values with manual tranmission achieving higher mpg.  
+3. **gear** with lower values show higher difference between manual vs auto with manual trasmission achiving higher mpg.  
+4. **wt** shows higher correlation with manual (0.909) compared to auto transmission (0.768).  
+5. **qsec** shows higher correlation with manual (0.802) compared to auto transmission (0.657).  
+
+## Regression Modeling
+
+### fit 1: lm(mpg ~ am, mtcars)  
+Single variate model between outcome (mpg) and predictor (am).
+
+Based on the fit1 coefficients (refer to Appendix Section 3) the manual transmission motor is 7 miles efficients than auto.  The below box diagram shows it as well.
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE, out.width="40%"}  
+fit1 <- lm(mpg ~ am, mtcars)
+ggplot(mtcars, aes(am, mpg)) + geom_boxplot(aes(fill=am))
+```
+
+In the given dataset **mtcars** there are many other variables provided that would impact the mileage.  The above simple model could be biased if we ignore other variables that may correlate with **am** or it may be an underfit model.
+
+### fit 2: lm(mpg ~ ., mtcars)  
+Multi variate model between outcome (mpg) and using all predictors (.).
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit2 <- lm(mpg ~ ., mtcars)
+```
+
+Based on the fit2 coefficients (refer to Appendix Section 4) the residual error is smaller than fit 1 but the F-static is lower (measure of significance of group of predictors) and also the P values are not significant either.  
+
+### fit 3: step(lm(mpg ~ ., mtcars), trace=FALSE)  
+Multi variate model after using **step()** function that would provide the best model based on minimum variance and high degrees of freedom.
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit3 <- step(lm(mpg ~ ., mtcars), trace=FALSE)
+```
+
+Based on the fit3 coefficients (refer to Appendix Section 5) the residual error is smaller than fit 1 and fit 2.  The F-static is higher than any of the previous models and also the P values are significant for all the predictors (wt, qsec, am).
+
+Looking at the diagnostic plot in Section 5 the residuals appear slightly off from normal distribution (the 95% confidence internval gray band).  There is one data point which has high leverage according to cooks distance.  
+
+The fit 3 (mpg ~ cyl + wt + qsec + am) is the best model considered so far.
+
+## Conclusion
+
+Answering to the questions:  
+
+1.  Is an automatic or manual transmission better for MPG.  
+All the models (fit1, fit2, fit3) show that, holding all other variables constant, manual transmission will increase mpg.  
+
+2.  Quantify the MPG difference between automatic and manual transmissions.  
+It is harder to answer this question as based on the models reviewed fit1, fit2, fit3 the mpg of manual is varying from 7.245, 1.212 to 1.809 miles respectively more than auto transmission.  As the best fit model (fit 3) has higher F-static and significant P values for each of the predictor and also the adjusted R^2 (variance covered by the model) is very high (0.84) so, we can say that the manual transmission provides 1.809 miles more than auto.
+
+The residual vs fitted model show the residuals are not normal (not symmetric to the horizontal line).  Also, as there are only 32 observations which is very low number (the effect size is small) so, I cannot conclude that the model will fit all future observations.
+\newpage  
+
+## Appendix
+
+### Section 1
+
+#### Basic review of **mtcars** dataset:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+mtcars %>% str()
+```  
+
+### Section 2
+
+#### Exploratory data analysis between all variables of **mtcars** dataset:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+ggpairs(mtcars, mapping=aes(color=am, alpha=0.8), upper=list(continuous=wrap("cor", size=2.5)), lower=list(combo=wrap("box", width=0.8), discrete=wrap("facetbar", width=0.8)))
+```
+
+### Section 3
+
+#### fit1 summary:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+summary(fit1)
+```
+
+### Section 4
+
+#### fit2 summary:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+summary(fit2)
+```
+
+### Section 5
+
+#### fit3 summary:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+summary(fit3)
+```
+
+#### Diagnostic plots on multi variate best fit model:  
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE, out.width="80%"}  
+ggnostic(fit3, mapping=aes(color=am))
+```

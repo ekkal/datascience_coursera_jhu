@@ -1,0 +1,202 @@
+---
+title: "Practical Machine Learning - Programming Assignment"
+author: "Rajesh Ekkaladevi"
+date: "Mar 19, 2020"
+output:
+  html_document:
+    highlight: espresso
+    theme: journal
+  pdf_document:
+    highlight: espresso
+---
+
+## Executive Summary  
+
+The goal of the exercise is to review Human Activity Recognition (HAR) data captured and use Machine Learning techniques to model the data and predict results based on test data.
+
+More details about the data is in the "Background Info" section.
+
+First a glimpse of the input data is made.  Then using exploratory data analysis base set of features selected for further review.  Later feature selection is performed and then multiple machine learning algorithms are applied and compared for accuracy.  Finally the best model is used to predict results on the test data.
+
+The goal is to predict the human activity performed based on data received from each of the sensor during the activity.  It is a classification problem.
+
+The findings are among the 3 models tried (MARS, Random Forests, Decision Trees) the model with best accuracy is obtained from Random Forests algorithm.
+
+## Background Info  
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+### Data  
+
+The training data for this project is available at: [pml-training](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+
+The test data is available at: [pml-testing](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+### Reference  
+
+The data for this project provided by: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har
+
+[Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.](http://web.archive.org/web/20170519033209/http://groupware.les.inf.puc-rio.br/public/papers/2013.Velloso.QAR-WLE.pdf)
+
+## Data Processing  
+
+```{r, echo=FALSE, results='hide', error=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(caret)
+library(skimr)
+library(earth)
+library(knitr)
+```
+
+### Setting seed for reproducibility  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+set.seed(54321)
+```
+
+### Reading input data  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+training <- read_csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'))
+testing <- read_csv(url('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'))
+```
+
+The input data has the following dimension:  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+training %>% dim()
+```
+
+### Partition training data into train_set and test_set  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_in <- createDataPartition(training$classe, p=0.7, list=FALSE)
+train_set <- training[train_in,]
+test_set <- training[-train_in,]
+```
+
+## Preprocessing (Feature Filtering, Extraction and Engineering)  
+
+### Feature Filtering, Extraction and Engineering  
+
+From all data sets removing aggregated measures and keeping facts of importance only.  Timestamp is ignored as the input data is captured for few hours only and the goal is to predict the activity rather forecast.  Also removed other obvious info like new_window, num_window and X1.  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_set_fix <- train_set %>% filter(new_window=='no') %>% 
+  select(-starts_with(c('avg','var', 'std', 'min', 'max', 'amplitude', 'kurtosis', 'skewness',
+  'user_name', 'raw_timestamp_part_1', 'raw_timestamp_part_2', 'cvtd_timestamp', 'new_window', 
+  'num_window', 'X1'))) %>% 
+  mutate(classe = factor(classe))
+
+test_set_fix <- test_set %>% filter(new_window=='no') %>% 
+  select(-starts_with(c('avg','var', 'std', 'min', 'max', 'amplitude', 'kurtosis', 'skewness', 
+  'user_name', 'raw_timestamp_part_1', 'raw_timestamp_part_2', 'cvtd_timestamp', 'new_window', 
+  'num_window', 'X1'))) %>% 
+  mutate(classe = factor(classe))
+
+testing_fix <- testing %>% filter(new_window=='no') %>% 
+  select(-starts_with(c('avg','var', 'std', 'min', 'max', 'amplitude', 'kurtosis', 'skewness', 
+  'user_name', 'raw_timestamp_part_1', 'raw_timestamp_part_2', 'cvtd_timestamp', 'new_window', 
+  'num_window', 'X1')))
+```
+
+### Check for missing data  
+
+Checking to see no variable is missing data:  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_set_fix %>% anyNA()
+```
+
+The input data after filtering un-necessary variables has the following dimension:  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_set_fix %>% dim()
+test_set_fix %>% dim()
+testing_fix %>% dim()
+```
+    
+### Scaling Features  
+    
+Transforming (standardizing) variable values between 0 and 1 except the outcome variable (classe).  This not only avoids unequal weightage to different variables but also helps compare relative effect of each variable with others from different scale.  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+trans_fit <- preProcess(train_set_fix, method='range')
+
+train_set_fix_trans <- predict(trans_fit, newdata=train_set_fix)
+train_set_fix_trans$classe <- train_set_fix$classe
+
+test_set_fix_trans <- predict(trans_fit, newdata=test_set_fix)
+test_set_fix_trans$classe <- test_set_fix$classe
+
+testing_fix_trans <- predict(trans_fit, newdata=testing_fix)
+```
+
+## Exploratory Data Analysis  
+
+### Pair plot with outcome (classe)  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_set_fix_trans_plot <- train_set_fix_trans %>% gather(variable, value, -classe)
+```
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=8}  
+ggplot(train_set_fix_trans_plot, aes(classe, value, color=classe)) + 
+  geom_boxplot(outlier.size=0.4) + 
+  facet_wrap(vars(variable))
+```
+
+## Model Fit  
+
+### Cross validation setup for training  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+train_control <- trainControl(method = "repeatedcv", number = 5, repeats = 1, verbose=FALSE)
+```
+  
+### Fit multiple models and check accuracy  
+  
+#### Multiple Adaptive Regression Splines (MARS)  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit_mars <- train(classe ~ ., data=train_set_fix_trans, method='earth', trControl=train_control)
+fit_mars  
+```
+    
+#### Random Forests  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit_rf <- train(classe ~ ., data=train_set_fix_trans, method='rf', trControl=train_control)
+fit_rf  
+```
+    
+#### Decision Trees  
+    
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit_rpart <- train(classe ~ ., data=train_set_fix_trans, method='rpart', trControl=train_control)
+fit_rpart 
+```
+
+### Compare models for best accuracy  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+fit_compare <- resamples(list(MARS=fit_mars, RF=fit_rf, DT=fit_rpart))
+fit_compare %>% summary
+```
+
+### Use best model to predict on internal validation set  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+predicted_rf <- predict(fit_rf, newdata=test_set_fix_trans)
+
+confusionMatrix(reference=test_set_fix$classe, data=predicted_rf)
+```
+
+## Test (external data)  
+
+### Use best model to predict on final test data  
+
+```{r, echo=TRUE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}  
+predicted_rf <- predict(fit_rf, newdata=testing_fix_trans)
+predicted_rf 
+```

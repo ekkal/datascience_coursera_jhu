@@ -1,0 +1,194 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: "Rajesh Ekkaladevi"
+date: "Dec 10, 2018"
+output:
+  pdf_document:
+  html_document:
+    toc: true
+    self_contained: no
+---
+
+# NOTE: Please review the figures in the figure directory! as inline figures are too large to be displayed in html file.  Or please check the attached PDF in the project directory containing figures inline.  Thanks!
+
+## Loading and processing the data:
+### Load reqd. libraries
+```{r}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+opts_knit$set(echo=TRUE, figure.path="figure/")
+```
+
+### Load activity data.
+```{r}
+activity <- read_csv("activity.zip")
+```
+
+```{r}
+glimpse(activity)
+```
+
+### Add date_hms variable with date and time in datetime format.
+```{r}
+activity <- activity %>% mutate(date_hms = ymd_hm(sprintf("%s %04d", as.character(date), interval)))
+```
+
+```{r}
+glimpse(activity)
+```
+
+## Histogram of the total number of steps taken each day:
+### Steps_per_day, mean and median number of steps taken per day after filtering NAs.
+```{r}
+activity_day <- activity %>% select(date, steps) %>% filter(!is.na(steps)) %>% group_by(date) %>% summarize(steps_per_day = sum(steps))
+```
+
+```{r}
+glimpse(activity_day)
+```
+
+## Mean and median number of steps taken each day:
+### Mean and median steps per day
+```{r}
+activity_day_mean_median <- activity_day %>% summarize(total_steps=sum(steps_per_day), mean_steps_per_day=mean(steps_per_day), median_steps_per_day=median(steps_per_day))
+```
+
+```{r}
+activity_day_mean_median
+```
+
+### Plot showing histogram of steps_per_day across all days.
+```{r, fig.width=10}
+ggplot(activity_day, aes(date, steps_per_day)) + 
+geom_bar(stat="identity", aes(color="total_steps_per_day"), fill="gold", size=.5, show.legend=TRUE) + 
+geom_hline(aes(yintercept=activity_day_mean_median$mean_steps_per_day, color="mean_steps_per_day"), size=.5, show.legend=TRUE) + 
+geom_hline( aes(yintercept=activity_day_mean_median$median_steps_per_day, color="median_steps_per_day"), size=0.5, show.legend=TRUE) + 
+labs(x="Date", y="Total steps", title="Total steps per day", color="Legend") + 
+scale_x_date(date_breaks="1 day", date_labels="%Y-%m-%d") + 
+theme_light() + 
+theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1), legend.direction="horizontal", legend.position=c(0.5,0.92)) + 
+ylim(0,max(activity_day$steps_per_day)*1.2)
+```
+
+## Time series plot of the average number of steps taken by interval:
+### Steps_per_interval, mean and median number of steps taken per interval after filtering NAs.
+```{r}
+activity_interval <- activity %>% filter(!is.na(steps)) %>% group_by(interval) %>% summarize(steps_per_interval = sum(steps), avg_steps_per_interval = round(mean(steps),2))
+```
+
+```{r}
+glimpse(activity_interval)
+```
+
+### Add interval_time variable from interval in datetime format for plotting.
+```{r}
+activity_interval_plot <- activity_interval %>% mutate(interval_time = as.POSIXct(strptime(sprintf("%04d", interval), "%H%M")))
+```
+
+### Plot of timeseries of averaging steps per day across all days.
+```{r, fig.width=10}
+ggplot(activity_interval_plot, aes(interval_time, avg_steps_per_interval)) + 
+geom_line() + 
+labs(x="5-minute Time Intervals", y="Average steps", title="Average steps per interval", color="Legend") + 
+scale_x_datetime(date_breaks="30 mins", date_labels="%H:%M") + 
+theme_light() + 
+theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1), legend.direction="horizontal", legend.position=c(0.5,0.92))
+```
+
+### The 5-minute interval that, on average, contains the maximum number of steps.
+```{r}
+activity_interval %>% select(interval, avg_steps_per_interval) %>% filter(avg_steps_per_interval == max(avg_steps_per_interval))
+```
+
+From the above max average steps per interval is noticed on interval 835.
+
+## Code to describe and show a strategy for imputing missing data:
+### Find the number of NAs and its proportion in the data.
+```{r}
+activity %>% select(steps) %>% mutate(NAs = ifelse(is.na(steps), 'yes', 'no')) %>% group_by(NAs) %>% summarize(count = n()) %>% mutate(percent = count/sum(count))
+```
+
+### Find the date's on which NAs are there.
+```{r}
+activity %>% filter(is.na(steps)) %>% group_by(date) %>% summarize(n = n()) %>% mutate(cumulative_NAs = cumsum(n))
+```
+The number of NAs from the above two snippets match to **2304** indicating on the days where the data is missing it is missing for the full day.
+
+### Join original data set activity with activity_interval to get avg_steps_per_interval in the dataset.
+```{r}
+activity_joined <- left_join(activity, activity_interval)
+head(activity_joined)
+```
+
+### Impute all intervals where steps is NA.
+```{r}
+activity_imputed <- activity_joined %>% mutate(steps = ifelse(is.na(steps), avg_steps_per_interval, steps))
+head(activity_imputed)
+```
+
+### Check if all dates with step values as NA are updated.
+```{r}
+activity_imputed %>% filter(is.na(steps)) %>% group_by(date) %>% summarize(n = n()) %>% mutate(cumulative_NAs = cumsum(n))
+```
+
+From the above all NAs are update hence no more NAs.
+
+## Histogram of the total number of steps taken each day after missing values are imputed:
+### Compute avg_steps_per_day on the imputed data.
+```{r}
+activity_imputed_day <- activity_imputed %>% select(date, steps) %>% group_by(date) %>% summarize(steps_per_day = sum(steps), avg_steps_per_day = mean(steps))
+```
+
+### Mean and median number of steps taken each day after data impute.
+```{r}
+activity_imputed_day_mean_median <- activity_imputed_day %>% summarize(total_steps=sum(steps_per_day), mean_steps_per_day=mean(steps_per_day), median_steps_per_day=median(steps_per_day))
+```
+
+```{r}
+activity_imputed_day_mean_median
+```
+
+The inputed mean and medians have changed from [activity_day_mean_median](#mean-and-median-steps-per-day) (before impute).
+
+### Plot showing histogram of steps_per_day across all days after impute.
+```{r, fig.width=10}
+ggplot(activity_imputed_day, aes(date, steps_per_day)) + 
+geom_bar(stat="identity", aes(color="total_steps_per_day"), fill="gold", size=.5, show.legend=TRUE) + 
+geom_hline(aes(yintercept=activity_imputed_day_mean_median$mean_steps_per_day, color="mean_steps_per_day"), size=.5, show.legend=TRUE) + 
+geom_hline( aes(yintercept=activity_imputed_day_mean_median$median_steps_per_day, color="median_steps_per_day"), size=0.5, show.legend=TRUE) + 
+labs(x="Date", y="Total steps", title="Total steps per day (Imputed)", color="Legend") + 
+scale_x_date(date_breaks="1 day", date_labels="%Y-%m-%d") + 
+theme_light() + 
+theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1), legend.direction="horizontal", legend.position=c(0.5,0.92)) + 
+ylim(0,max(activity_day$steps_per_day)*1.2)
+```
+
+## Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends:
+### Add weekday to the data using lubridate function.
+```{r}
+activity_imputed_week <- activity_imputed %>% mutate(weekday = as.character(wday(date, label=TRUE)), is_weekday = ifelse(wday(date, label=TRUE) %in% c("Mon", "Tue", "Wed", "Thu", "Fri"), "Weekday", "Weekend"))
+str(activity_imputed_week)
+```
+
+```{r}
+activity_imputed_week_interval <- activity_imputed_week %>% group_by(interval, is_weekday) %>% mutate(avg_steps_per_interval = mean(steps))
+head(activity_imputed_week_interval)
+```
+
+### Add interval_time variable from interval in datetime format for plotting.
+```{r}
+activity_imputed_week_interval_plot <- activity_imputed_week_interval %>% mutate(interval_time = as.POSIXct(strptime(sprintf("%04d", interval), "%H%M")))
+```
+
+```{r, fig.width=10}
+ggplot(activity_imputed_week_interval_plot, aes(interval_time, avg_steps_per_interval, group=is_weekday, color=is_weekday)) + 
+geom_line() + 
+labs(x="5-minute Time Intervals", y="Average steps", title="Average steps per interval (Weekday vs Weekend)", color="Legend") + 
+scale_x_datetime(date_breaks="30 mins", date_labels="%H:%M") + 
+theme_light() + 
+theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1), legend.position="none") + 
+facet_grid(is_weekday ~ .)
+```
+
+From the above the max number of steps are noticed on weekday.
