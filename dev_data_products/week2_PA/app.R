@@ -56,8 +56,8 @@ server <- function(input, output, session) {
                 fillOpacity = 0.5,
                 radius = ~ exp(sqrt(mag))*mag*1000, 
                 weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
+                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
             )
     })
 
@@ -73,10 +73,10 @@ server <- function(input, output, session) {
                 fillOpacity = 0.5, 
                 radius = ~ exp(sqrt(mag))*mag*1000, 
                 weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
+                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
         )
     })
 }
 
-#shinyApp(ui, server)
+shinyApp(ui, server)
