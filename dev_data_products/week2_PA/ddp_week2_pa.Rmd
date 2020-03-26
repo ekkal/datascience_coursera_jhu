@@ -8,6 +8,7 @@ output:
     theme: journal
   pdf_document:
     highlight: espresso
+runtime: shiny
 ---
 
 ## Executive Summary
@@ -20,7 +21,7 @@ The earth quake data is obtained from https://earthquake.usgs.gov website and is
 
 ## Code
 
-```{r, context="render"}
+```{r, context="render", eval=FALSE}
 # client - UI design
 library(shiny)
 library(shinyWidgets)
@@ -52,7 +53,7 @@ ui <- fluidPage(
 )
 ```
 
-```{r, context="server"}
+```{r, context="server", eval=FALSE}
 # server - logic
 library(leaflet)
 library(tidyverse)
