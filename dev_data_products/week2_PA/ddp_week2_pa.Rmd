@@ -1,115 +1,110 @@
 ---
 title: "Developing Data Products - Programming Assignment - Week 2"
 author: "Rajesh Ekkaladevi"
-date: "Mar 24, 2020"
+date: "Mar 27, 2020"
 output:
   html_document:
     highlight: espresso
     theme: journal
   pdf_document:
     highlight: espresso
-runtime: shiny
+always_allow_html: true
 ---
 
 ## Executive Summary
 
 The goal of the exercise is to create a map using Leaflet.
 
-A map describing earth quakes info across the world between years 2000 and 2020 is created using Shiny and Leaflet.  The map provides a hover feature that would display the magnitude, year and also place of the earth quake when mouse is on top of the earth quake circle.  When clicked on the circle a standing out label with the info is diplayed.  The years and the magnitude of the earth quakes can be selected using a slider range scale.
+A map describing earth quakes info across the world between years 2000 and 2020 is created using Leaflet.  The map provides a hover feature that would display the magnitude, year and also place of the earth quake.  When clicked on the circle a standing out label with the info is diplayed.  The magnitude of the earth quakes can be selected using checkbox on the top of the map.
 
 The earth quake data is obtained from https://earthquake.usgs.gov website and is downloaded ahead into the project directory.
 
-## Code
-
-```{r, context="render", eval=FALSE}
-# client - UI design
-library(shiny)
-library(shinyWidgets)
-library(leaflet)
-
-ui <- fluidPage(
-
-    titlePanel("Earth Quakes"),
-    h4("Date Created: 03/24/2020"),
-
-    sidebarLayout(
-        sidebarPanel(
-            # slider for year range.
-            sliderInput("year_range", "Year Range:",
-                        min = 2000, max = 2020,
-                        value = c(2010,2020), sep = ""),
-
-            # slider for magnitude range.
-            sliderInput("mag_range", "Magnitude Range:",
-                        min = 5, max = 10,
-                        value = c(6,10), step = 0.5),
-        ),
-
-        mainPanel(
-            # display map with default width and height.
-            leafletOutput("map")
-        )
-    )
-)
-```
-
-```{r, context="server", eval=FALSE}
-# server - logic
+## Map
+```{r, echo=FALSE, results=FALSE, error=FALSE, warning=FALSE, message=FALSE}
 library(leaflet)
 library(tidyverse)
 library(lubridate)
 library(RColorBrewer)
-
-server <- function(input, output, session) {
-
-    # full data and color palette.
-    data <- read_csv("world_earthquakes.csv")
-    colorpal <- colorNumeric("YlOrRd", data$mag)
-
-    # reactive data.
-    filteredData <- reactive({
-        data <- read_csv("world_earthquakes.csv") %>% filter(year(time) >= input$year_range[1] & year(time) <= input$year_range[2] & mag >= input$mag_range[1] & mag <= input$mag_range[2])
-    })
-
-    # draw and center view to north america
-    output$map <- renderLeaflet({
-        leaflet(data) %>% 
-            setView(lng = -99, lat = 42, zoom = 3)  %>%
-            addTiles() %>% 
-            addCircles(
-                lat = ~ latitude, 
-                lng = ~ longitude, 
-                color = "#777777",
-                fillColor = ~colorpal(mag), 
-                fillOpacity = 0.5,
-                radius = ~ exp(sqrt(mag))*mag*1000, 
-                weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
-            )
-    })
-
-    # redraw based on controllers.
-    observe({
-        leafletProxy("map", data = filteredData()) %>%
-            clearShapes() %>%
-            addCircles(
-                lat = ~ latitude, 
-                lng = ~ longitude, 
-                color = "#777777",
-                fillColor = ~colorpal(mag), 
-                fillOpacity = 0.5, 
-                radius = ~ exp(sqrt(mag))*mag*1000, 
-                weight = 1, 
-                popup = ~as.character(sprintf("Magnitude: %s<br>Year: %s<br>Place: %s", mag, year(time), place)), 
-                label = ~as.character(sprintf("Magnitude: %s, Year: %s, Place: %s", mag, year(time), place))
-        )
-    })
-}
 ```
 
-## Output
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+# full data and color palette.
+data <- read_csv("world_earthquakes.csv") %>% 
+    filter(mag >= 5) %>% 
+    mutate(mag_lvl = cut(mag, breaks=seq(5,10), labels=paste0("mag", 5:9), right=FALSE))
+    
+mag5 <- data %>% filter(mag_lvl == 'mag5')
+mag6 <- data %>% filter(mag_lvl == 'mag6')
+mag7 <- data %>% filter(mag_lvl == 'mag7')
+mag8 <- data %>% filter(mag_lvl == 'mag8')
+mag9 <- data %>% filter(mag_lvl == 'mag9')
+    
+colorpal <- colorNumeric("YlOrRd", data$mag)
 
-```{r}
-shinyApp(ui, server)
+# draw map, center view to north america and plot layered circles with magnitude info.
+leaflet() %>% 
+    setView(lng = -99, lat = 42, zoom = 3)  %>%
+    addTiles() %>% 
+    addCircles(data = mag5,
+        lat = ~ latitude, 
+        lng = ~ longitude, 
+        color = "#777777",
+        fillColor = ~colorpal(mag), 
+        fillOpacity = 0.5,
+        radius = ~ exp(sqrt(mag))*mag*1000, 
+        weight = 1, 
+        group = "5",
+        popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
+        label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+    ) %>% 
+    addCircles(data = mag6,
+        lat = ~ latitude, 
+        lng = ~ longitude, 
+        color = "#777777",
+        fillColor = ~colorpal(mag), 
+        fillOpacity = 0.5,
+        radius = ~ exp(sqrt(mag))*mag*1000, 
+        weight = 1, 
+        group = "6",
+        popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
+        label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+     ) %>% 
+    addCircles(data = mag7,
+        lat = ~ latitude, 
+        lng = ~ longitude, 
+        color = "#777777",
+        fillColor = ~colorpal(mag), 
+        fillOpacity = 0.5,
+        radius = ~ exp(sqrt(mag))*mag*1000, 
+        weight = 1, 
+        group = "7",
+        popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
+        label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+     ) %>% 
+    addCircles(data = mag8,
+        lat = ~ latitude, 
+        lng = ~ longitude, 
+        color = "#777777",
+        fillColor = ~colorpal(mag), 
+        fillOpacity = 0.5,
+        radius = ~ exp(sqrt(mag))*mag*1000, 
+        weight = 1, 
+        group = "8",
+        popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
+        label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+     ) %>% 
+    addCircles(data = mag9,
+        lat = ~ latitude, 
+        lng = ~ longitude, 
+        color = "#777777",
+        fillColor = ~colorpal(mag), 
+        fillOpacity = 0.5,
+        radius = ~ exp(sqrt(mag))*mag*1000, 
+        weight = 1, 
+        group = "9",
+        popup = ~as.character(sprintf("Magnitude: %s<br>Date: %s<br>Place: %s", mag, year(time), place)), 
+        label = ~as.character(sprintf("Magnitude: %s, Date: %s, Place: %s", mag, year(time), place))
+    ) %>% 
+    addLayersControl(overlayGroups = c("5", "6", "7", "8", "9"), options = layersControlOptions(collapsed = FALSE)) %>% 
+    addLegend(pal = colorpal, values = data$mag, position = "bottomleft")
 ```
