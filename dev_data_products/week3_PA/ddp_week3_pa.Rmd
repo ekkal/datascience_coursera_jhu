@@ -1,0 +1,204 @@
+---
+title: "Life Expectancy across Countinents and Countries"
+author: "Rajesh Ekkaladevi"
+date: "3/29/2020"
+output: 
+    ioslides_presentation:
+        smaller: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Data
+Exploring life expectancy across Continents and Countries based on GDP and Population as provided by the **gapminder** dataset.
+
+```{r, echo=FALSE, results=FALSE, error=FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+library(tidyverse)
+library(gapminder)
+library(RColorBrewer)
+```
+
+### Data Structure
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gapminder %>% str()
+```
+
+***
+### Sample Data (year: 2007)
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gm <- gapminder %>% 
+    filter(continent == 'Asia' & 
+        year == 2007 &
+        !is.na(lifeExp)
+    ) %>%
+    mutate(
+        country = fct_reorder(country, gdpPercap),
+        life_exp = round(lifeExp),
+        gdp_lvl = cut(gdpPercap, breaks=quantile(.$gdpPercap, seq(0, 1, by=0.1)), labels=seq(1:10), include.lowest=TRUE),
+        pop_lvl = cut(pop, breaks=quantile(.$pop, seq(0, 1, by=0.2)), labels=seq(1:5), include.lowest=TRUE)
+    )
+gm %>% head(10)
+```
+
+## Plot - Asia
+**Life Expectancy by Country with GDP (dot color) and Population (dot size)**
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gdp_lvl <- gm %>% arrange(gdp_lvl) %>% select(gdp_lvl) %>% unique()
+pop_lvl <- gm %>% arrange(pop_lvl) %>% select(pop_lvl) %>% unique()
+gdp_col <- c(colorRampPalette(c("red", "yellow", "green"))(10))
+
+z <- ggplot(gm, aes(y=life_exp, x=country, color=gdp_lvl, size=pop_lvl)) + 
+    geom_point(alpha=0.8, show.legend=FALSE) +
+    scale_color_manual(labels=gdp_lvl, values=gdp_col) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, hjust=1),
+        axis.ticks = element_blank(),
+        panel.border = element_blank()
+    ) +
+    labs(x="Country", y="Life Expectancy", 
+        colour="GDP Level", size="Population Level")
+        
+ggplotly(z)
+```
+
+## Plot - Africa
+**Life Expectancy by Country with GDP (dot color) and Population (dot size)**
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gm <- gapminder %>% 
+    filter(continent == 'Africa' & 
+        year == 2007 &
+        !is.na(lifeExp)
+    ) %>%
+    mutate(
+        country = fct_reorder(country, gdpPercap),
+        life_exp = round(lifeExp),
+        gdp_lvl = cut(gdpPercap, breaks=quantile(.$gdpPercap, seq(0, 1, by=0.1)), labels=seq(1:10), include.lowest=TRUE),
+        pop_lvl = cut(pop, breaks=quantile(.$pop, seq(0, 1, by=0.2)), labels=seq(1:5), include.lowest=TRUE)
+    )
+    
+gdp_lvl <- gm %>% arrange(gdp_lvl) %>% select(gdp_lvl) %>% unique()
+pop_lvl <- gm %>% arrange(pop_lvl) %>% select(pop_lvl) %>% unique()
+gdp_col <- c(colorRampPalette(c("red", "yellow", "green"))(10))
+
+z <- ggplot(gm, aes(y=life_exp, x=country, color=gdp_lvl, size=pop_lvl)) + 
+    geom_point(alpha=0.8, show.legend=FALSE) +
+    scale_color_manual(labels=gdp_lvl, values=gdp_col) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, hjust=1),
+        axis.ticks = element_blank(),
+        panel.border = element_blank()
+    ) +
+    labs(x="Country", y="Life Expectancy", 
+        colour="GDP Level", size="Population Level")
+        
+ggplotly(z)
+```
+
+## Plot - Americas
+**Life Expectancy by Country with GDP (dot color) and Population (dot size)**
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gm <- gapminder %>% 
+    filter(continent == 'Americas' & 
+        year == 2007 &
+        !is.na(lifeExp)
+    ) %>%
+    mutate(
+        country = fct_reorder(country, gdpPercap),
+        life_exp = round(lifeExp),
+        gdp_lvl = cut(gdpPercap, breaks=quantile(.$gdpPercap, seq(0, 1, by=0.1)), labels=seq(1:10), include.lowest=TRUE),
+        pop_lvl = cut(pop, breaks=quantile(.$pop, seq(0, 1, by=0.2)), labels=seq(1:5), include.lowest=TRUE)
+    )
+    
+gdp_lvl <- gm %>% arrange(gdp_lvl) %>% select(gdp_lvl) %>% unique()
+pop_lvl <- gm %>% arrange(pop_lvl) %>% select(pop_lvl) %>% unique()
+gdp_col <- c(colorRampPalette(c("red", "yellow", "green"))(10))
+
+z <- ggplot(gm, aes(y=life_exp, x=country, color=gdp_lvl, size=pop_lvl)) + 
+    geom_point(alpha=0.8, show.legend=FALSE) +
+    scale_color_manual(labels=gdp_lvl, values=gdp_col) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, hjust=1),
+        axis.ticks = element_blank(),
+        panel.border = element_blank()
+    ) +
+    labs(x="Country", y="Life Expectancy", 
+        colour="GDP Level", size="Population Level")
+        
+ggplotly(z)
+```
+
+## Plot - Europe
+**Life Expectancy by Country with GDP (dot color) and Population (dot size)**
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gm <- gapminder %>% 
+    filter(continent == 'Europe' & 
+        year == 2007 &
+        !is.na(lifeExp)
+    ) %>%
+    mutate(
+        country = fct_reorder(country, gdpPercap),
+        life_exp = round(lifeExp),
+        gdp_lvl = cut(gdpPercap, breaks=quantile(.$gdpPercap, seq(0, 1, by=0.1)), labels=seq(1:10), include.lowest=TRUE),
+        pop_lvl = cut(pop, breaks=quantile(.$pop, seq(0, 1, by=0.2)), labels=seq(1:5), include.lowest=TRUE)
+    )
+    
+gdp_lvl <- gm %>% arrange(gdp_lvl) %>% select(gdp_lvl) %>% unique()
+pop_lvl <- gm %>% arrange(pop_lvl) %>% select(pop_lvl) %>% unique()
+gdp_col <- c(colorRampPalette(c("red", "yellow", "green"))(10))
+
+z <- ggplot(gm, aes(y=life_exp, x=country, color=gdp_lvl, size=pop_lvl)) + 
+    geom_point(alpha=0.8, show.legend=FALSE) +
+    scale_color_manual(labels=gdp_lvl, values=gdp_col) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, hjust=1),
+        axis.ticks = element_blank(),
+        panel.border = element_blank()
+    ) +
+    labs(x="Country", y="Life Expectancy", 
+        colour="GDP Level", size="Population Level")
+        
+ggplotly(z)
+```
+
+## Plot - Oceania
+**Life Expectancy by Country with GDP (dot color) and Population (dot size)**
+
+```{r, echo=FALSE, results=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+gm <- gapminder %>% 
+    filter(continent == 'Oceania' & 
+        year == 2007 &
+        !is.na(lifeExp)
+    ) %>%
+    mutate(
+        country = fct_reorder(country, gdpPercap),
+        life_exp = round(lifeExp),
+        gdp_lvl = cut(gdpPercap, breaks=quantile(.$gdpPercap, seq(0, 1, by=0.1)), labels=seq(1:10), include.lowest=TRUE),
+        pop_lvl = cut(pop, breaks=quantile(.$pop, seq(0, 1, by=0.2)), labels=seq(1:5), include.lowest=TRUE)
+    )
+    
+gdp_lvl <- gm %>% arrange(gdp_lvl) %>% select(gdp_lvl) %>% unique()
+pop_lvl <- gm %>% arrange(pop_lvl) %>% select(pop_lvl) %>% unique()
+gdp_col <- c(colorRampPalette(c("lightgreen", "green"))(2))
+
+z <- ggplot(gm, aes(y=life_exp, x=country, color=gdp_lvl, size=pop_lvl)) + 
+    geom_point(alpha=0.8, show.legend=FALSE) +
+    scale_color_manual(labels=gdp_lvl, values=gdp_col) +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, hjust=1),
+        axis.ticks = element_blank(),
+        panel.border = element_blank()
+    ) +
+    labs(x="Country", y="Life Expectancy", 
+        colour="GDP Level", size="Population Level")
+        
+ggplotly(z)
+```
