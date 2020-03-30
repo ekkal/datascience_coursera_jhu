@@ -1,0 +1,7 @@
+# developing data products - week4 - assignment
+
+```{r}
+library(shiny)
+library(knitr)
+runGitHub("datascience_coursera_jhu/dev_data_products/week4_PA", "ekkal")
+```
