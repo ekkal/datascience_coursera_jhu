@@ -15,6 +15,7 @@ The earth quake data is obtained from https://earthquake.usgs.gov website and is
 A map describing earth quakes info across the world between years 2000 and 2020 is created using Shiny and Leaflet.  The map provides a hover feature that would display the magnitude, year and also place of the earth quake when mouse is hovered on earth quake point.  When clicked on the earth quake point a standing out label with the info is diplayed.  The years and the magnitude of the earth quakes can be selected using a slider range scale which are part of the Shiny app.
 
 Shiny Application: [Earth Quakes across the World](https://ekkal.shinyapps.io/week4_pa/)
+Slides: [Slides - Earth Quakes across the World](https://ekkal.github.io/datascience_coursera_jhu/dev_data_products/week4_PA/ddp_week4_pa.html)
 Git: https://github.com/ekkal/datascience_coursera_jhu/tree/master/dev_data_products/week4_PA/
 
 ## Data
